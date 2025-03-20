@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditorInternal.VersionControl.ListControl;
 
 public class IK_Solver : MonoBehaviour
 {
@@ -41,6 +42,9 @@ public class IK_Solver : MonoBehaviour
     public string RobotIP = "192.168.3.11";  // Robot IP
     public int RobotPort = 3920;
     public bool ResetAndEnableRobot = false;
+    public bool activateEndEffector = false;
+
+    private bool lastEndEffectorState = true;
 
 
     private readonly float[] currentAngles = new float[6]; // Array for angles initialized with 0
@@ -52,7 +56,6 @@ public class IK_Solver : MonoBehaviour
 
     private IK_Calculator iK_Calculator;
     private RobotController robotController;
-
 
     private bool isSingularityWarning = false;
     private Dictionary<int, float> lastWarningAngles = new Dictionary<int, float>();
@@ -112,10 +115,22 @@ public class IK_Solver : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (robotController != null && ResetAndEnableRobot)
+        if (robotController != null)
         {
-            robotController.ResetAndEnable();
-            ResetAndEnableRobot = false;
+            if (ResetAndEnableRobot)
+            {
+                robotController.ResetAndEnable();
+                ResetAndEnableRobot = false;
+            }
+
+            if (lastEndEffectorState != activateEndEffector)
+            {
+                robotController.ActivateEndEffector(activateEndEffector);
+
+                lastEndEffectorState = activateEndEffector;
+            }
+
+
         }
 
         var target3D = target.transform.position;
